@@ -48,7 +48,6 @@ When answering an incident, provide:
 model = ChatGoogleGenerativeAI(
     model=LLM_MODEL,
     google_api_key=GEMINI_API_KEY,
-    temperature=0.2,
 )
 
 

@@ -1,3 +1,7 @@
+import pytest
+from pydantic import ValidationError
+
+from devops_agents.models import RoutingDecision
 from devops_agents.graph import route_agent
 
 
@@ -29,3 +33,20 @@ def test_linux_route():
     }
 
     assert route_agent(state) == "linux"
+
+
+def test_valid_routing_decision():
+    decision = RoutingDecision(
+        agent="kubernetes",
+        reason="The issue is related to a Kubernetes Pod.",
+    )
+
+    assert decision.agent == "kubernetes"
+
+
+def test_invalid_routing_decision():
+    with pytest.raises(ValidationError):
+        RoutingDecision(
+            agent="database",
+            reason="This should not be a valid agent.",
+        )

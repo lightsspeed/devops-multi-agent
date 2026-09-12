@@ -7,12 +7,13 @@ from devops_agents.agents.linux import linux_agent
 from devops_agents.config import GEMINI_API_KEY, LLM_MODEL
 from devops_agents.state import AgentState
 from devops_agents.utils import extract_text
+from devops_agents.models import RoutingDecision
 
 
 supervisor_model = ChatGoogleGenerativeAI(
     model=LLM_MODEL,
     google_api_key=GEMINI_API_KEY,
-)
+).with_structured_output(RoutingDecision)
 
 
 SUPERVISOR_PROMPT = """
@@ -63,28 +64,22 @@ LINUX:
 - Linux networking
 - Linux OS issues
 
-Return ONLY ONE of these exact values:
+Choose the specialist that is most appropriate for the user's query.
 
-kubernetes
-aws
-linux
+Also provide a short reason for your choice.
 """
 
 
 def supervisor(state: AgentState) -> dict:
-    response = supervisor_model.invoke(
+    decision = supervisor_model.invoke(
         [
             ("system", SUPERVISOR_PROMPT),
             ("human", state["user_query"]),
         ]
     )
 
-    selected_agent = extract_text(response.content).lower()
-
-    valid_agents = {
-        "kubernetes",
-        "aws",
-        "linux",
+    return {
+        "selected_agent": decision.agent,
     }
 
     if selected_agent not in valid_agents:

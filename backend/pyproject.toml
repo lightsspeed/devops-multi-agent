@@ -1,6 +1,6 @@
 [project]
 name = "devops-multi-agent"
-version = "0.1.0"
+version = "0.2.0"
 description = "Multi-agent DevOps incident response system built with LangGraph and Google Gemini"
 requires-python = ">=3.12"
 

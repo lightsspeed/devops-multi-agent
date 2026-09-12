@@ -1,0 +1,12 @@
+docs/
+├── architecture/
+│   ├── overview.md
+│   ├── agent-flow.md
+│   └── microservices.md
+│
+├── adr/
+│   ├── 001-gemini.md
+│   ├── 002-memory.md
+│   └── 003-microservices.md
+│
+└── runbooks/

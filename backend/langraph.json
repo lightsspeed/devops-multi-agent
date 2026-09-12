@@ -1,0 +1,9 @@
+{
+    "dependencies": [
+        "."
+    ],
+    "graphs": {
+        "devops_agent": "./src/devops_agents/graph.py:graph"
+    },
+    "env": ".env"
+}

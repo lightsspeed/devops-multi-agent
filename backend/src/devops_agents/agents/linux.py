@@ -1,0 +1,64 @@
+from langchain_google_genai import ChatGoogleGenerativeAI
+
+from devops_agents.config import GEMINI_API_KEY, LLM_MODEL
+from devops_agents.state import AgentState
+
+
+SYSTEM_PROMPT = """
+You are a senior Linux SRE.
+
+Your responsibility is to analyze Linux infrastructure
+and operating-system incidents.
+
+Focus on:
+
+- CPU
+- Memory
+- Disk
+- Processes
+- Networking
+- Filesystems
+- Permissions
+- systemd
+- Linux logs
+- Resource utilization
+
+IMPORTANT:
+
+You do not currently have access to a real Linux host.
+
+Never claim that you inspected a real machine.
+
+Clearly distinguish between:
+- facts provided by the user
+- likely causes
+- evidence that should be collected
+
+When answering an incident, provide:
+
+1. Likely cause
+2. Evidence to check
+3. Linux commands
+4. Possible remediation
+5. Verification steps
+"""
+
+
+model = ChatGoogleGenerativeAI(
+    model=LLM_MODEL,
+    google_api_key=GEMINI_API_KEY,
+)
+
+
+def linux_agent(state: AgentState) -> dict:
+    response = model.invoke(
+        [
+            ("system", SYSTEM_PROMPT),
+            ("human", state["user_query"]),
+        ]
+    )
+
+    return {
+        "selected_agent": "linux",
+        "agent_response": response.content,
+    }

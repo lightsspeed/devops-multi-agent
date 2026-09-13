@@ -9,7 +9,6 @@ from devops_agents.agents.kubernetes import kubernetes_agent
 from devops_agents.agents.aws import aws_agent
 from devops_agents.agents.linux import linux_agent
 from devops_agents.agents.planner import planner
-from devops_agents.agents.reviewer import reviewer
 
 
 def test_kubernetes_route():

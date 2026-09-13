@@ -123,3 +123,12 @@ def test_refresh_reload_behavior_restores_messages(mock_k8s_model, mock_supervis
     assert messages[1]["sender"] == "assistant"
     assert k8s_response in messages[1]["text"]
 
+
+@patch("devops_agents.graph.supervisor_model")
+def test_chat_endpoint_rate_limit_error(mock_supervisor_model):
+    mock_supervisor_model.invoke.side_effect = Exception("429 RESOURCE_EXHAUSTED: Quota exceeded for model gemini-3.6-flash")
+    response = client.post("/chat", json={"message": "Test quota error"})
+    assert response.status_code == 429
+    assert "Gemini API quota or rate limit exceeded" in response.json()["detail"]
+
+

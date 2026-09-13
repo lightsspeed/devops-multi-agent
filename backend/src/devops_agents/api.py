@@ -103,8 +103,20 @@ def chat_endpoint(payload: ChatRequest) -> ChatResponse:
         )
 
     except Exception as exc:
+        err_msg = str(exc)
+        err_lower = err_msg.lower()
+        if "429" in err_msg or "resource_exhausted" in err_lower or "quota" in err_lower or "rate limit" in err_lower or "rate_limit" in err_lower:
+            raise HTTPException(
+                status_code=429,
+                detail="Gemini API quota or rate limit exceeded (429 RESOURCE_EXHAUSTED). Please wait a few moments before retrying, or check your Gemini API key / quota settings.",
+            )
+        if "404" in err_msg or "not_found" in err_lower or "no longer available" in err_lower:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Gemini API model error (404 NOT_FOUND): {err_msg}. Please update LLM_MODEL in backend/.env to gemini-3.6-flash.",
+            )
         raise HTTPException(
             status_code=500,
-            detail=f"An error occurred while processing the request: {str(exc)}",
+            detail=f"An error occurred while processing the request: {err_msg}",
         )
 

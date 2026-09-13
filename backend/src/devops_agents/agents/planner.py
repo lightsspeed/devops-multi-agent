@@ -97,8 +97,8 @@ def planner(state: AgentState) -> dict:
     detected = _detect_domains(query)
 
     if len(detected) >= 2:
-        # Cross-domain query: run all detected specialists in priority order
-        plan = detected
+        # Cross-domain query: run at most 2 detected specialists in priority order
+        plan = detected[:2]
     elif len(detected) == 1:
         # Single-domain detected from keywords — trust that over supervisor
         # only if supervisor also agrees, otherwise defer to supervisor

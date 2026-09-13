@@ -1,4 +1,6 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { User, Bot, Server } from 'lucide-react';
 
 export interface Message {
@@ -37,7 +39,15 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
 
       <div className="message-content">
         <div className="message-bubble">
-          {message.text}
+          {isUser ? (
+            <div style={{ whiteSpace: 'pre-wrap' }}>{message.text}</div>
+          ) : (
+            <div className="markdown-body">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {message.text}
+              </ReactMarkdown>
+            </div>
+          )}
         </div>
 
         <div className="message-meta">

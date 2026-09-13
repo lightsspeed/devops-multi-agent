@@ -12,6 +12,7 @@ dependencies = [
     "python-dotenv",
     "fastapi",
     "uvicorn",
+    "boto3",
 ]
 
 [dependency-groups]

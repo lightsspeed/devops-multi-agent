@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { ChatMessage, Message } from './components/ChatMessage';
 import { ChatInput } from './components/ChatInput';
-import { checkHealth, sendChatMessage } from './services/api';
+import { checkHealth, sendChatMessage, createSession, getSession } from './services/api';
 import { Terminal, ShieldAlert, Cpu } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [threadId, setThreadId] = useState<string>(() => 'thread-' + Math.random().toString(36).substring(2, 9));
+  const [threadId, setThreadId] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [isChecking, setIsChecking] = useState<boolean>(false);
@@ -37,16 +37,58 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
+    const initSession = async () => {
+      const savedSessionId = localStorage.getItem('devops_session_id');
+      if (savedSessionId) {
+        try {
+          const sessionData = await getSession(savedSessionId);
+          setThreadId(sessionData.session_id);
+          setMessages(sessionData.messages || []);
+          return;
+        } catch {
+          console.log('Saved session not found on server. Initializing new session...');
+        }
+      }
+      try {
+        const newSession = await createSession();
+        setThreadId(newSession.session_id);
+        localStorage.setItem('devops_session_id', newSession.session_id);
+        setMessages([]);
+      } catch (err) {
+        console.error('Failed to create session:', err);
+      }
+    };
+
     verifyHealth();
+    initSession();
   }, []);
 
-  const handleNewSession = () => {
-    setThreadId('thread-' + Math.random().toString(36).substring(2, 9));
-    setMessages([]);
+  const handleNewSession = async () => {
     setErrorMsg(null);
+    try {
+      const newSession = await createSession();
+      setThreadId(newSession.session_id);
+      localStorage.setItem('devops_session_id', newSession.session_id);
+      setMessages([]);
+    } catch (err: any) {
+      console.error('Failed to create new session:', err);
+      setErrorMsg('Failed to create a new session.');
+    }
   };
 
   const handleSendMessage = async (userText: string) => {
+    let currentThreadId = threadId;
+    if (!currentThreadId) {
+      try {
+        const newSession = await createSession();
+        currentThreadId = newSession.session_id;
+        setThreadId(currentThreadId);
+        localStorage.setItem('devops_session_id', currentThreadId);
+      } catch (e) {
+        console.error('Failed to auto-create session prior to message:', e);
+      }
+    }
+
     const userMsg: Message = {
       id: 'msg-' + Date.now(),
       sender: 'user',
@@ -61,7 +103,7 @@ export const App: React.FC = () => {
     try {
       const response = await sendChatMessage({
         message: userText,
-        thread_id: threadId,
+        thread_id: currentThreadId,
       });
 
       const assistantMsg: Message = {
@@ -75,6 +117,7 @@ export const App: React.FC = () => {
       setMessages((prev) => [...prev, assistantMsg]);
       if (response.thread_id) {
         setThreadId(response.thread_id);
+        localStorage.setItem('devops_session_id', response.thread_id);
       }
     } catch (err: any) {
       console.error('Chat error:', err);
@@ -181,7 +224,6 @@ export const App: React.FC = () => {
         <ChatInput
           onSend={handleSendMessage}
           isLoading={isLoading}
-          disabled={!isOnline}
         />
       </main>
     </div>

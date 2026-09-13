@@ -1,0 +1,20 @@
+{
+  "session_id": "session-reload-test-51e260a7",
+  "updated_at": "2026-09-13T07:40:54.481508",
+  "messages": [
+    {
+      "id": "msg-281a7262",
+      "sender": "user",
+      "text": "Show pod details",
+      "selected_agent": null,
+      "timestamp": "01:10 PM"
+    },
+    {
+      "id": "msg-9dda3c39",
+      "sender": "assistant",
+      "text": "Analyzed pods cleanly.",
+      "selected_agent": "kubernetes",
+      "timestamp": "01:10 PM"
+    }
+  ]
+}

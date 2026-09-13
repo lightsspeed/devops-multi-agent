@@ -1,0 +1,20 @@
+{
+  "session_id": "session-reload-test-0078c8b5",
+  "updated_at": "2026-09-13T08:05:52.344716",
+  "messages": [
+    {
+      "id": "msg-2ad57ae7",
+      "sender": "user",
+      "text": "Show pod details",
+      "selected_agent": null,
+      "timestamp": "01:35 PM"
+    },
+    {
+      "id": "msg-020c1c54",
+      "sender": "assistant",
+      "text": "Analyzed pods cleanly. Root cause: deployment has 0/3 replicas available. Evidence: kubectl describe deployment shows ProgressDeadlineExceeded condition.",
+      "selected_agent": "kubernetes",
+      "timestamp": "01:35 PM"
+    }
+  ]
+}

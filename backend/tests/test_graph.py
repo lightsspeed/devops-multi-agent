@@ -8,6 +8,7 @@ from devops_agents.models import RoutingDecision
 from devops_agents.agents.kubernetes import kubernetes_agent
 from devops_agents.agents.aws import aws_agent
 from devops_agents.agents.linux import linux_agent
+from devops_agents.agents.planner import planner
 
 
 def test_kubernetes_route():
@@ -67,7 +68,7 @@ def test_supervisor_node(mock_supervisor):
     assert res == {"selected_agent": "kubernetes"}
 
 
-@patch("devops_agents.agents.kubernetes.model")
+@patch("devops_agents.agents.kubernetes.model_with_tools")
 def test_kubernetes_agent_node(mock_k8s_model):
     mock_k8s_model.invoke.return_value = AIMessage(
         content="Check pod events with kubectl describe pod"
@@ -85,7 +86,7 @@ def test_kubernetes_agent_node(mock_k8s_model):
     assert res["messages"][0].content == "Check pod events with kubectl describe pod"
 
 
-@patch("devops_agents.agents.aws.model")
+@patch("devops_agents.agents.aws.model_with_tools")
 def test_aws_agent_node(mock_aws_model):
     mock_aws_model.invoke.return_value = AIMessage(
         content="Check security group egress rules"
@@ -100,7 +101,7 @@ def test_aws_agent_node(mock_aws_model):
     assert res["agent_response"] == "Check security group egress rules"
 
 
-@patch("devops_agents.agents.linux.model")
+@patch("devops_agents.agents.linux.model_with_tools")
 def test_linux_agent_node(mock_linux_model):
     mock_linux_model.invoke.return_value = AIMessage(
         content="Check memory usage with free -m"
@@ -116,14 +117,24 @@ def test_linux_agent_node(mock_linux_model):
 
 
 @patch("devops_agents.graph.supervisor_model")
-@patch("devops_agents.agents.kubernetes.model")
+@patch("devops_agents.agents.kubernetes.model_with_tools")
 def test_multi_turn_conversation_thread_persistence(mock_k8s_model, mock_supervisor_model):
     mock_supervisor_model.invoke.return_value = RoutingDecision(
         agent="kubernetes", reason="K8s query"
     )
+    # Responses must satisfy Reviewer: >80 chars + diagnosis evidence
+    turn1_response = (
+        "payment-api has 3 failing pods (STATUS=CrashLoopBackOff, READY=0/1). "
+        "Root cause: OOM kill detected in container logs. Evidence: memory limit exceeded."
+    )
+    turn2_response = (
+        "The pod events indicate ImagePullBackOff. Likely cause: invalid image tag. "
+        "Evidence from cluster: ErrImagePull on payment-api-7d8f9. "
+        "Recommended action: kubectl set image deployment/payment-api ..."
+    )
     mock_k8s_model.invoke.side_effect = [
-        AIMessage(content="payment-api has 3 failing pods."),
-        AIMessage(content="The pod events indicate ImagePullBackOff."),
+        AIMessage(content=turn1_response),
+        AIMessage(content=turn2_response),
     ]
 
     config = {"configurable": {"thread_id": "thread-123"}}
@@ -134,7 +145,7 @@ def test_multi_turn_conversation_thread_persistence(mock_k8s_model, mock_supervi
         config=config,
     )
     assert res1["selected_agent"] == "kubernetes"
-    assert res1["agent_response"] == "payment-api has 3 failing pods."
+    assert turn1_response in res1["agent_response"]
 
     # Turn 2
     res2 = graph.invoke(
@@ -142,28 +153,38 @@ def test_multi_turn_conversation_thread_persistence(mock_k8s_model, mock_supervi
         config=config,
     )
     assert res2["selected_agent"] == "kubernetes"
-    assert res2["agent_response"] == "The pod events indicate ImagePullBackOff."
+    # Response may have approval banner appended — check prefix
+    assert turn2_response in res2["agent_response"]
 
     # Check conversation history saved in checkpointer
     saved_state = graph.get_state(config)
     messages = saved_state.values["messages"]
-    assert len(messages) == 4
+    assert len(messages) >= 4
     assert messages[0].content == "What pods are failing?"
-    assert messages[1].content == "payment-api has 3 failing pods."
+    assert turn1_response in messages[1].content
     assert messages[2].content == "Why?"
-    assert messages[3].content == "The pod events indicate ImagePullBackOff."
+    assert turn2_response in messages[3].content
 
 
 @patch("devops_agents.graph.supervisor_model")
-@patch("devops_agents.agents.aws.model")
-@patch("devops_agents.agents.linux.model")
+@patch("devops_agents.agents.aws.model_with_tools")
+@patch("devops_agents.agents.linux.model_with_tools")
 def test_thread_isolation(mock_linux_model, mock_aws_model, mock_supervisor_model):
     mock_supervisor_model.invoke.side_effect = [
         RoutingDecision(agent="aws", reason="AWS query"),
         RoutingDecision(agent="linux", reason="Linux query"),
     ]
-    mock_aws_model.invoke.return_value = AIMessage(content="S3 bucket response")
-    mock_linux_model.invoke.return_value = AIMessage(content="Linux uptime response")
+    # Responses must satisfy Reviewer
+    aws_response = (
+        "S3 bucket response: bucket policy is misconfigured. "
+        "Evidence checked: GetBucketPolicy returned AccessDenied. Likely cause: IAM policy missing s3:GetObject."
+    )
+    linux_response = (
+        "Linux uptime response: load average 4.2. Evidence: process 'java' consuming 90% CPU. "
+        "Likely cause: memory leak in application. Recommended action: restart service."
+    )
+    mock_aws_model.invoke.return_value = AIMessage(content=aws_response)
+    mock_linux_model.invoke.return_value = AIMessage(content=linux_response)
 
     config_a = {"configurable": {"thread_id": "thread-A"}}
     config_b = {"configurable": {"thread_id": "thread-B"}}
@@ -182,9 +203,9 @@ def test_thread_isolation(mock_linux_model, mock_aws_model, mock_supervisor_mode
 
     assert len(state_a) == 2
     assert state_a[0].content == "AWS S3 error"
-    assert state_a[1].content == "S3 bucket response"
+    assert aws_response in state_a[1].content
 
     assert len(state_b) == 2
     assert state_b[0].content == "Linux reboot error"
-    assert state_b[1].content == "Linux uptime response"
+    assert linux_response in state_b[1].content
 

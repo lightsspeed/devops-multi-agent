@@ -34,3 +34,6 @@ dist/
 
 # LangGraph
 .langgraph_api/
+
+# Session Data
+backend/data/

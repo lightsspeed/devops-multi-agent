@@ -1,0 +1,104 @@
+{
+  "session_id": "test-thread-999",
+  "updated_at": "2026-09-13T08:16:01.633729",
+  "messages": [
+    {
+      "id": "msg-e42734e0",
+      "sender": "user",
+      "text": "What is my EC2 status?",
+      "selected_agent": null,
+      "timestamp": "01:08 PM"
+    },
+    {
+      "id": "msg-009af8ff",
+      "sender": "assistant",
+      "text": "EC2 instance state is running",
+      "selected_agent": "aws",
+      "timestamp": "01:08 PM"
+    },
+    {
+      "id": "msg-7dd6f09a",
+      "sender": "user",
+      "text": "What is my EC2 status?",
+      "selected_agent": null,
+      "timestamp": "01:09 PM"
+    },
+    {
+      "id": "msg-e9adf5e8",
+      "sender": "assistant",
+      "text": "EC2 instance state is running",
+      "selected_agent": "aws",
+      "timestamp": "01:09 PM"
+    },
+    {
+      "id": "msg-d1cf79a6",
+      "sender": "user",
+      "text": "What is my EC2 status?",
+      "selected_agent": null,
+      "timestamp": "01:10 PM"
+    },
+    {
+      "id": "msg-413e6ee7",
+      "sender": "assistant",
+      "text": "EC2 instance state is running",
+      "selected_agent": "aws",
+      "timestamp": "01:10 PM"
+    },
+    {
+      "id": "msg-d0f8de02",
+      "sender": "user",
+      "text": "What is my EC2 status?",
+      "selected_agent": null,
+      "timestamp": "01:10 PM"
+    },
+    {
+      "id": "msg-db8707f7",
+      "sender": "assistant",
+      "text": "EC2 instance state is running",
+      "selected_agent": "aws",
+      "timestamp": "01:10 PM"
+    },
+    {
+      "id": "msg-7ea9567f",
+      "sender": "user",
+      "text": "What is my EC2 status?",
+      "selected_agent": null,
+      "timestamp": "01:34 PM"
+    },
+    {
+      "id": "msg-7c7c241c",
+      "sender": "assistant",
+      "text": "EC2 instance state is running. Evidence: DescribeInstances returned state=running. Likely cause: security group blocks outbound on port 443. Recommended action: review security group egress rules.",
+      "selected_agent": "aws",
+      "timestamp": "01:34 PM"
+    },
+    {
+      "id": "msg-c4ab36c2",
+      "sender": "user",
+      "text": "What is my EC2 status?",
+      "selected_agent": null,
+      "timestamp": "01:35 PM"
+    },
+    {
+      "id": "msg-754b3ec1",
+      "sender": "assistant",
+      "text": "EC2 instance state is running. Evidence: DescribeInstances returned state=running. Likely cause: security group blocks outbound on port 443. Recommended action: review security group egress rules.",
+      "selected_agent": "aws",
+      "timestamp": "01:35 PM"
+    },
+    {
+      "id": "msg-7d10a37b",
+      "sender": "user",
+      "text": "What is my EC2 status?",
+      "selected_agent": null,
+      "timestamp": "01:46 PM"
+    },
+    {
+      "id": "msg-c8fde9d0",
+      "sender": "assistant",
+      "text": "EC2 instance state is running. Evidence: DescribeInstances returned state=running. Likely cause: security group blocks outbound on port 443. Recommended action: review security group egress rules.",
+      "selected_agent": "aws",
+      "timestamp": "01:46 PM"
+    }
+  ]
+}

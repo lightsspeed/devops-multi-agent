@@ -1,3 +1,7 @@
+import uuid
+
+from langchain_core.messages import HumanMessage
+
 from devops_agents.graph import graph
 from devops_agents.utils import extract_text
 
@@ -20,6 +24,9 @@ def print_header() -> None:
 def main() -> None:
     print_header()
 
+    thread_id = str(uuid.uuid4())
+    config = {"configurable": {"thread_id": thread_id}}
+
     while True:
         query = input("You: ").strip()
 
@@ -34,14 +41,13 @@ def main() -> None:
         try:
             result = graph.invoke(
                 {
-                    "user_query": query,
-                    "selected_agent": "",
-                    "agent_response": "",
-                }
+                    "messages": [HumanMessage(content=query)],
+                },
+                config=config,
             )
 
-            agent = result["selected_agent"].capitalize()
-            response = extract_text(result["agent_response"])
+            agent = result.get("selected_agent", "Agent").capitalize()
+            response = extract_text(result.get("agent_response", ""))
 
             print()
             print("┌" + "─" * 58 + "┐")
@@ -61,4 +67,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()

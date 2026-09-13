@@ -1,13 +1,13 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from devops_agents.agents.aws import aws_agent
 from devops_agents.agents.kubernetes import kubernetes_agent
 from devops_agents.agents.linux import linux_agent
 from devops_agents.config import GEMINI_API_KEY, LLM_MODEL
-from devops_agents.state import AgentState
-from devops_agents.utils import extract_text
 from devops_agents.models import RoutingDecision
+from devops_agents.state import AgentState
 
 
 supervisor_model = ChatGoogleGenerativeAI(
@@ -71,24 +71,11 @@ Also provide a short reason for your choice.
 
 
 def supervisor(state: AgentState) -> dict:
-    decision = supervisor_model.invoke(
-        [
-            ("system", SUPERVISOR_PROMPT),
-            ("human", state["user_query"]),
-        ]
-    )
+    messages = [("system", SUPERVISOR_PROMPT)] + list(state.get("messages", []))
+    decision = supervisor_model.invoke(messages)
 
     return {
         "selected_agent": decision.agent,
-    }
-
-    if selected_agent not in valid_agents:
-        raise ValueError(
-            f"Supervisor returned invalid agent: {selected_agent}"
-        )
-
-    return {
-        "selected_agent": selected_agent,
     }
 
 
@@ -142,5 +129,6 @@ builder.add_edge(
 )
 
 
-# Compile
-graph = builder.compile()
+# Compile with memory checkpointer
+checkpointer = InMemorySaver()
+graph = builder.compile(checkpointer=checkpointer)

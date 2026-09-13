@@ -1,7 +1,9 @@
+from langchain_core.messages import AIMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from devops_agents.config import GEMINI_API_KEY, LLM_MODEL
 from devops_agents.state import AgentState
+from devops_agents.utils import extract_text
 
 
 SYSTEM_PROMPT = """
@@ -52,13 +54,12 @@ model = ChatGoogleGenerativeAI(
 
 def linux_agent(state: AgentState) -> dict:
     response = model.invoke(
-        [
-            ("system", SYSTEM_PROMPT),
-            ("human", state["user_query"]),
-        ]
+        [("system", SYSTEM_PROMPT)] + list(state.get("messages", []))
     )
+    text = extract_text(response.content)
 
     return {
         "selected_agent": "linux",
-        "agent_response": response.content,
-    }
+        "agent_response": text,
+        "messages": [AIMessage(content=text)],
+    }

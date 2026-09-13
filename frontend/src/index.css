@@ -277,11 +277,11 @@ body {
 }
 
 .assistant .message-bubble {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: transparent;
+  border: none;
+  padding: 0.25rem 0;
   color: var(--text-primary);
-  border-bottom-left-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: none;
 }
 
 .message-meta {

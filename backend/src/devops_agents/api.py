@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,11 +7,12 @@ from langchain_core.messages import HumanMessage
 from pydantic import BaseModel, Field
 
 from devops_agents.graph import graph
+from devops_agents.storage import storage
 from devops_agents.utils import extract_text
 
 app = FastAPI(
     title="DevOps Multi-Agent API",
-    version="0.5.0",
+    version="0.6.0",
     description="REST API for DevOps incident assistant multi-agent system",
 )
 
@@ -37,6 +38,11 @@ class ChatResponse(BaseModel):
     thread_id: str
 
 
+class SessionResponse(BaseModel):
+    session_id: str
+    messages: List[Dict[str, Any]] = []
+
+
 class HealthResponse(BaseModel):
     status: str
     version: str
@@ -44,13 +50,31 @@ class HealthResponse(BaseModel):
 
 @app.get("/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
-    return HealthResponse(status="ok", version="0.5.0")
+    return HealthResponse(status="ok", version="0.6.0")
+
+
+@app.post("/sessions", response_model=SessionResponse)
+def create_session() -> SessionResponse:
+    session_id = storage.create_session()
+    return SessionResponse(session_id=session_id, messages=[])
+
+
+@app.get("/sessions/{session_id}", response_model=SessionResponse)
+def get_session(session_id: str) -> SessionResponse:
+    if not storage.session_exists(session_id):
+        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found.")
+    messages = storage.get_session_messages(session_id)
+    return SessionResponse(session_id=session_id, messages=messages)
 
 
 @app.post("/chat", response_model=ChatResponse)
 def chat_endpoint(payload: ChatRequest) -> ChatResponse:
-    thread_id = payload.thread_id or str(uuid.uuid4())
-    config = {"configurable": {"thread_id": thread_id}}
+    session_id = payload.thread_id or str(uuid.uuid4())
+    
+    # Save user message to persistent storage
+    storage.add_message(session_id=session_id, sender="user", text=payload.message)
+
+    config = {"configurable": {"thread_id": session_id}}
 
     try:
         result = graph.invoke(
@@ -64,10 +88,18 @@ def chat_endpoint(payload: ChatRequest) -> ChatResponse:
         raw_response = result.get("agent_response", "")
         response_text = extract_text(raw_response)
 
+        # Save assistant message to persistent storage
+        storage.add_message(
+            session_id=session_id,
+            sender="assistant",
+            text=response_text,
+            selected_agent=agent_name,
+        )
+
         return ChatResponse(
             response=response_text,
             selected_agent=agent_name,
-            thread_id=thread_id,
+            thread_id=session_id,
         )
 
     except Exception as exc:
@@ -75,3 +107,4 @@ def chat_endpoint(payload: ChatRequest) -> ChatResponse:
             status_code=500,
             detail=f"An error occurred while processing the request: {str(exc)}",
         )
+

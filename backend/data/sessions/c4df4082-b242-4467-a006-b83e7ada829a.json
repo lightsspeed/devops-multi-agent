@@ -1,0 +1,20 @@
+{
+  "session_id": "c4df4082-b242-4467-a006-b83e7ada829a",
+  "updated_at": "2026-09-13T08:05:52.296791",
+  "messages": [
+    {
+      "id": "msg-bf9c0b94",
+      "sender": "user",
+      "text": "My pod keeps crashing",
+      "selected_agent": null,
+      "timestamp": "01:35 PM"
+    },
+    {
+      "id": "msg-8f2095b5",
+      "sender": "assistant",
+      "text": "Pod CrashLoopBackOff: check container logs. Root cause: application exits immediately on startup due to missing environment variable. Evidence: kubectl describe pod shows OOMKilled exit code 137.",
+      "selected_agent": "kubernetes",
+      "timestamp": "01:35 PM"
+    }
+  ]
+}

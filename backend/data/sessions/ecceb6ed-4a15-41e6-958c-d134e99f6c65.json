@@ -1,0 +1,20 @@
+{
+  "session_id": "ecceb6ed-4a15-41e6-958c-d134e99f6c65",
+  "updated_at": "2026-09-13T07:40:54.444316",
+  "messages": [
+    {
+      "id": "msg-eecdb92e",
+      "sender": "user",
+      "text": "My pod keeps crashing",
+      "selected_agent": null,
+      "timestamp": "01:10 PM"
+    },
+    {
+      "id": "msg-a7441735",
+      "sender": "assistant",
+      "text": "Pod CrashLoopBackOff: check container logs",
+      "selected_agent": "kubernetes",
+      "timestamp": "01:10 PM"
+    }
+  ]
+}

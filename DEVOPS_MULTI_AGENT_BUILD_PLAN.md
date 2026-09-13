@@ -374,6 +374,10 @@ v0.3.0
 
 # Phase 4 — Frontend
 
+Status: COMPLETE
+
+Version: `v0.4.0`
+
 Goal:
 
 Build the actual user interface.
